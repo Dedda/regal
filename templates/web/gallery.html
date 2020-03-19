@@ -1,0 +1,73 @@
+{% extends "frame.html" %}
+
+{% block title %}{{ gallery_name }}{% endblock %}
+
+<!--
+HEAD EXTENSIONS
+-->
+{% block head_extensions %}
+<script>
+docReady(function() {
+    regal.listInto(
+        "{{ sub_galleries }}",
+        document.getElementById("sub-galleries-list"),
+        regal.thumbForGallery,
+        function updateGalleryCount(data) {
+            let count = data.length;
+            if (count === 0) {
+                document.getElementById("galleries-wrapper").classList.add("hidden");
+            } else {
+                document.getElementById("h-galleries").innerText = "Galleries (" + count + ")";
+            }
+        }
+    );
+    regal.listInto(
+        "{{ pictures }}",
+        document.getElementById("picture-list"),
+        regal.thumbForPicture,
+        function updatePictureCount(data) {
+            let count = data.length;
+            if (count === 0) {
+                document.getElementById("pictures-wrapper").classList.add("hidden");
+            } else {
+                document.getElementById("h-pictures").innerText = "Pictures (" + data.length + ")";
+            }
+        }
+    );
+
+    let parentContainer = document.getElementById("parent");
+    if ('{{ parent }}' !== '') {
+        regal.requestJson('{{ parent }}', function(parent) {
+            let name = parent.gallery_name;
+            let display = parent.display;
+
+            let a = document.createElement('a');
+            a.href = display;
+            let p = document.createElement('p');
+            p.innerText = '< back to ' + name;
+            a.appendChild(p);        
+            parentContainer.appendChild(a);
+        });
+    } else {
+        parentContainer.classList.add('hidden');
+    }
+});
+
+</script>
+{% endblock %}
+
+<!--
+CONTENTS
+-->
+{% block contents %}
+<h1>{{ gallery_name }}</h1>
+<div id="parent"></div>
+<div id="galleries-wrapper" class="contents-block">
+    <h2 id="h-galleries">Galleries</h2>
+    <div id="sub-galleries-list" class="thumb-list contents-box"></div>
+</div>
+<div id="pictures-wrapper" class="contents-block">
+    <h2 id="h-pictures">Pictures</h2>
+    <div id="picture-list" class="thumb-list contents-box"></div>
+</div>
+{% endblock %}

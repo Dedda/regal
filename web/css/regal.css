@@ -1,0 +1,91 @@
+body {
+    background-color: #333333;
+    color: lightgray;
+    max-width: 100%;
+    width: 100vw;
+    overflow-x: hidden;
+    margin: 0px;
+    padding: 0px;
+}
+
+nav {
+    font-size: larger;
+    padding: 1em;
+    background-color: midnightblue;
+}
+
+.contents-box {
+    padding: 0.5em;
+    margin: 0.2em;
+    border: darkgrey 1px solid;
+}
+
+.top-button {
+    font-size: larger;
+    margin: 1em;
+}
+
+a {
+    color: darkgrey;
+}
+
+.error {
+    background-color: red;
+    color: white;
+}
+
+.thumb-list {    
+    display: flex;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: flex-start;
+    overflow: auto;
+    flex-wrap: wrap;
+}
+
+.thumb-box {
+    width: 100px;    
+    display: flex;
+    float: left;
+    margin: 0.5em;
+    border: darkgrey 1px solid;
+    padding: 0.2em;
+}
+
+.thumb-box a p {
+    margin: 0px;
+    padding: 0px;
+}
+
+.thumb {
+    width: 100px;
+    height: 100px;
+}
+
+.picture-display-wrapper {
+    width: 100%;
+}
+
+.picture-display {    
+    width: auto;
+    height: auto;
+    max-width: 90%;
+    max-height: 100%;
+    position: relative;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.contents-block {
+    display: block;
+}

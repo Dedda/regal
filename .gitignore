@@ -1,0 +1,7 @@
+**/.idea
+**/*.rs.bk
+target
+*config.json
+*.sqlite3
+cache
+

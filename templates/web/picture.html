@@ -1,0 +1,25 @@
+{% extends "frame.html" %}
+
+{% block title %}{{ picture_name }}{% endblock %}
+
+<!--
+HEAD EXTENSIONS
+-->
+{% block head_extensions %}
+
+{% endblock %}
+
+<!--
+CONTENTS
+-->
+{% block contents %}
+<a href="{{ gallery }}">Back to gallery</a>
+<h1>Picture {{ picture_name }}</h1>
+<div class="picture-display-wrapper contents-box">
+    <img src="{{ raw }}" class="picture-display">
+</div>
+<p>
+    <a href="{{ raw }}" download="{{ filename }}">Download</a><br>
+    ID: {{ picture_id }}
+</p>
+{% endblock %}

@@ -1,0 +1,23 @@
+name: regal
+author: Stephan G. <dedda102@gmail.com>
+args:
+  - config:
+      short: c
+      long: config
+      value_name: FILE
+      help: Sets a custom config file
+      takes_value: true
+  - cache:
+      short: C
+      long: cache
+      value_name: DIR
+      help: Sets a custom cache directory
+      takes_value: true
+  - skip scan:
+      short: s
+      long: skip-scan
+      help: Do not scan gallery diretories on startup
+  - skip thumbs:
+      short: S
+      long: skip-thumbs
+      help: Do not create thumbnails on startup

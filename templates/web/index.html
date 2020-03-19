@@ -1,0 +1,26 @@
+{% extends "frame.html" %}
+
+{% block title %}Regal{% endblock %}
+
+<!--
+HEAD EXTENSIONS
+-->
+{% block head_extensions %}
+<script>
+docReady(function() {
+    regal.listInto(
+        "/gallery/top", 
+        document.getElementById("gallery_list"),
+        regal.thumbForGallery
+    );
+});
+</script>
+{% endblock %}
+
+<!--
+CONTENTS
+-->
+
+{% block contents %}
+<div id="gallery_list" class="thumb-list contents-box"></div>
+{% endblock %}
