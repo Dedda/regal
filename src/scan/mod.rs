@@ -1,14 +1,20 @@
 use std::path::Path;
 use std::fs::DirEntry;
+use std::thread;
+use std::thread::JoinHandle;
 use crate::database::model::{NewPicture, NewGallery};
-use serde::export::fmt::Debug;
-use crate::ScanDir;
+use crate::{config, Config, database, ScanDir};
 use sha::utils::{Digest, DigestExt};
 use image::{ImageError, GenericImageView};
-use colored::Colorize;
+use colored::{Color, Colorize};
 use uuid::Uuid;
 
 static FORMATS: [&'static str; 8] = ["png", "jpg", "jpeg", "gif", "bmp", "ico", "tiff", "webp"];
+
+const INFO_COLOR: Color = Color::Cyan;
+const OK_COLOR: Color = Color::Green;
+const ERROR_COLOR: Color = Color::Red;
+
 
 #[derive(Debug)]
 pub enum ScanError {
@@ -38,6 +44,33 @@ impl From<ImageError> for ScanError {
 
 pub type ScanResult<T> = Result<T, ScanError>;
 
+pub fn launch_background_scanner() -> JoinHandle<()> {
+    thread::spawn(|| {
+        log_info("Background process started.");
+        log_info("Scanning configured directories");
+        let conf: &Config = config::get();
+        for dir in conf.scan_dirs.iter() {
+            log_info(&format!("Scanning directory: {}", &dir.path));
+            init_gallery(dir);
+        }
+        let galleries = database::provider::gallery::all().unwrap();
+        log_info(&format!("Scanning {} existing galleries", galleries.len()));
+        for gallery in galleries {
+            log_info(&format!("Scanning gallery: {}", &gallery.name));
+            check_gallery(&gallery.id).unwrap();
+        }
+        log_info("Background process completed.");
+    })
+}
+
+fn init_gallery(dir: &ScanDir) {
+    if dir.recursive {
+        scan_recursively(&dir.path, &vec![]).unwrap();
+    } else {
+        scan(dir, None).unwrap();
+    }
+}
+
 pub fn scan(scan_dir: &ScanDir, parent: Option<i32>) -> ScanResult<()> {
     use crate::database::provider;
     let dir = &scan_dir.path;
@@ -66,10 +99,10 @@ pub fn scan(scan_dir: &ScanDir, parent: Option<i32>) -> ScanResult<()> {
         if img.is_none() || img.unwrap().sha1.ne(&sha1) {
             match scan_picture(&file, &gallery_id, sha1) {
                 Ok(img) => {
-                    println!("{} [{}] {}", "+".green(), gallery.name.green(), img.name.green());
                     provider::picture::insert(&img)?;
+                    log_ok(Some('+'), &format!("{} > {}", gallery.name, img.name));
                 },
-                Err(_) => eprintln!("{} [{}]", "! Error scanning file:".yellow(), file.yellow()),
+                Err(e) => log_error(&format!("[{}] Cannot scan file: {:?}", file, e)),//eprintln!("{} [{}]", "! Error scanning file:".yellow(), file.yellow()),
             }
         }
     }
@@ -94,7 +127,7 @@ pub fn scan_recursively(scan_dir: &str, parents: &Vec<String>) -> ScanResult<()>
                 if let Ok(new_picture) = scan_picture(&picture_file, &gallery.id, sha1) {
                     provider::picture::insert(&new_picture)?;
                 } else {
-                    eprintln!("{} {}", "! Error scanning file:".yellow(), picture_file.yellow());
+                    log_error(&format!("[{}] Cannot scan file", picture_file));
                 }
             }
         }
@@ -179,8 +212,9 @@ pub fn check_gallery(gallery_id: &i32) -> Result<(), crate::database::Error> {
     for picture in pictures {
         let path = Path::new(&picture.path);
         if !path.exists() {
-            println!("{} [{}] {}", "-".red(), gallery.name.red(), &picture.name.red());
+            // println!("{} [{}] {}", "-".red(), gallery.name.red(), &picture.name.red());
             crate::database::provider::picture::delete(&picture)?;
+            log(Some('-'), &format!("{} > {}", gallery.name, picture.name), Color::Red);
         }
     }
     Ok(())
@@ -206,4 +240,20 @@ fn scan_picture(file: &str, gallery_id: &i32, sha1: String) -> ScanResult<NewPic
         filesize,
         external_id,
     })
+}
+fn log_info(text: &str) {
+    log(Some('i'), text, INFO_COLOR);
+}
+
+fn log_ok(symbol: Option<char>, text: &str) {
+    log(symbol, text, OK_COLOR);
+}
+
+fn log_error(text: &str) {
+    log(Some('e'), text, ERROR_COLOR);
+}
+
+fn log(symbol: Option<char>, text: &str, color: Color) {
+    let symbol = symbol.unwrap_or(' ');
+    println!("  {} [Scanner] {}", symbol.to_string().color(color), text.color(color));
 }

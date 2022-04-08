@@ -28,11 +28,13 @@ extern crate sha;
 extern crate signal_hook;
 extern crate uuid;
 
-use colored::Colorize;
 use crate::config::{Config, ScanDir};
 use std::path::Path;
 use std::process::exit;
+use std::thread;
 use clap::{App, ArgMatches};
+use crate::scan::launch_background_scanner;
+use crate::thumb::launch_background_thumper;
 
 pub mod auth;
 pub mod config;
@@ -85,37 +87,17 @@ fn main() {
 
     get_cache_dir();
     println!("Regal v{}", VERSION);
-    let conf: &Config = config::get();
-    if !ARGS.skip_scan {
-        for dir in conf.scan_dirs.iter() {
-            init_gallery(dir);
+    thread::spawn(move || {
+        if !ARGS.skip_scan {
+            launch_background_scanner().join().unwrap();
         }
 
-        println!("\n{}\n===========\n", "Checking existing galleries".blue());
-        for gallery in database::provider::gallery::all().unwrap() {
-            scan::check_gallery(&gallery.id).unwrap();
+        if !ARGS.skip_thumbs {
+            launch_background_thumper();
         }
-    }
-
-    if !ARGS.skip_thumbs {
-        println!("\n{}\n===========\n", "Generating thumbnails".blue());
-        for gallery in database::provider::gallery::all().unwrap() {
-            println!("{} [{}]", "Generating thumbnails in gallery".blue(), gallery.name.magenta());
-            for pic in database::provider::picture::by_gallery(&gallery.id).unwrap() {
-                thumb::generate_if_needed(&pic).unwrap();
-            }
-        }
-    }
+    });
 
     net::launch();
-}
-
-fn init_gallery(dir: &ScanDir) {
-    if dir.recursive {
-        scan::scan_recursively(&dir.path, &vec![]).unwrap();
-    } else {
-        scan::scan(dir, None).unwrap();
-    }
 }
 
 pub fn get_cache_dir() -> String {

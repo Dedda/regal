@@ -9,8 +9,8 @@ let regal = {
     requestJson: function requestJson(url, onSuccess, onError = undefined) {
         let xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = function() {
-            if (xmlHttp.readyState == 4) {
-                if (xmlHttp.status == 200) {
+            if (xmlHttp.readyState === 4) {
+                if (xmlHttp.status === 200) {
                     onSuccess(JSON.parse(xmlHttp.responseText));
                 } else {
                     if (onError !== undefined) {
@@ -51,7 +51,7 @@ let regal = {
         div.classList.add("thumb-box");
         let a = document.createElement("a");
         a.href = gallery.display;
-        if (gallery.thumb != "none") {
+        if (gallery.thumb !== "none") {
             let img = document.createElement("img");
             img.src = gallery.thumb;
             img.classList.add("thumb");

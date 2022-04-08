@@ -4,6 +4,10 @@ use colored::Colorize;
 use image::ImageError;
 use image::imageops::FilterType::Triangle;
 
+mod background;
+
+pub use background::launch_background_thumper;
+
 #[derive(Debug)]
 pub enum ThumbError {
     Database(crate::database::Error),
